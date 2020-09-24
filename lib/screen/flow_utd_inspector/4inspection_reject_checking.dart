@@ -54,6 +54,7 @@ class _InspectionRejectCheckingInspectorState
   bool isButtonSHown = true;
   static const double _padding = 20.0;
   bool isEnable = true;
+  bool isFirstRun = true;
 
   TextEditingController defectLengthController = TextEditingController();
   TextEditingController defectFromController = TextEditingController();
@@ -275,53 +276,59 @@ class _InspectionRejectCheckingInspectorState
       height: 75,
       width: MediaQuery.of(context).size.width,
       child: FlatButton(
-          color: Colors.orangeAccent,
-          onPressed: () {
-            if (defectLengthController.text.isEmpty) {
-              showAppDialog(context, "Defect Length tidak boleh kosong");
-            } else {
-              if (defectLengthController.text
-                      .toString()
-                      .contains(RegExp(r"[^0-9\.]")) ||
-                  defectFromController.text
-                      .toString()
-                      .contains(RegExp(r"[^0-9\.]")) ||
-                  defectToController.text
-                      .toString()
-                      .contains(RegExp(r"[^0-9\.]"))) {
-                showAppDialog(
-                    context, "Tidak bisa input selain angka dan titik.");
-              } else {
-                showQuestionDialog(
-                  context,
-                  "Simpan Data",
-                  onYes: () {
-                    groupLeaderBloc.add(
-                      PostCheckPointInspector(
-                        InspectorCpBody(
-                          componentRfidId: widget.componentRfidID.toString(),
-                          checkPointId: selectedCheckpoint.id.toString(),
-                          defectDepthTo:
-                              defectLengthController.text.toString() == "0"
-                                  ? "0"
-                                  : defectToController.text.toString(),
-                          defectDepthFrom:
-                              defectLengthController.text.toString() == "0"
-                                  ? "0"
-                                  : defectFromController.text.toString(),
-                          defectLength: defectLengthController.text.toString(),
-                          result: status,
-                          remark: remarkController.text.toString(),
-                        ),
-                      ),
-                    );
-                    Navigator.pop(context);
-                  },
-                  onNo: () => Navigator.pop(context),
-                );
-              }
-            }
-          },
+          color: isFirstRun ? Colors.grey : Colors.orangeAccent,
+          onPressed: isFirstRun
+              ? () {}
+              : () {
+                  if (defectLengthController.text.isEmpty) {
+                    showAppDialog(context, "Defect Length tidak boleh kosong");
+                  } else {
+                    if (defectLengthController.text
+                            .toString()
+                            .contains(RegExp(r"[^0-9\.]")) ||
+                        defectFromController.text
+                            .toString()
+                            .contains(RegExp(r"[^0-9\.]")) ||
+                        defectToController.text
+                            .toString()
+                            .contains(RegExp(r"[^0-9\.]"))) {
+                      showAppDialog(
+                          context, "Tidak bisa input selain angka dan titik.");
+                    } else {
+                      showQuestionDialog(
+                        context,
+                        "Simpan Data",
+                        onYes: () {
+                          groupLeaderBloc.add(
+                            PostCheckPointInspector(
+                              InspectorCpBody(
+                                componentRfidId:
+                                    widget.componentRfidID.toString(),
+                                checkPointId: selectedCheckpoint.id.toString(),
+                                defectDepthTo:
+                                    defectLengthController.text.toString() ==
+                                            "0"
+                                        ? "0"
+                                        : defectToController.text.toString(),
+                                defectDepthFrom:
+                                    defectLengthController.text.toString() ==
+                                            "0"
+                                        ? "0"
+                                        : defectFromController.text.toString(),
+                                defectLength:
+                                    defectLengthController.text.toString(),
+                                result: status,
+                                remark: remarkController.text.toString(),
+                              ),
+                            ),
+                          );
+                          Navigator.pop(context);
+                        },
+                        onNo: () => Navigator.pop(context),
+                      );
+                    }
+                  }
+                },
           child: Text(
             "Save",
             style: TextStyle(
@@ -474,7 +481,7 @@ class _InspectionRejectCheckingInspectorState
                           width: 120,
                           height: 50,
                           child: TextField(
-                            enabled: isButtonSHown,
+                            enabled: !isFirstRun,
                             //enabling textField if TCP is null else is disabled
                             controller: defectLengthController,
                             keyboardType: TextInputType.number,
@@ -632,7 +639,7 @@ class _InspectionRejectCheckingInspectorState
                           width: MediaQuery.of(context).size.width * 0.60,
                           height: 60,
                           child: TextField(
-                            enabled: isButtonSHown,
+                            enabled: !isFirstRun,
                             controller: remarkController,
                             style: TextStyle(fontSize: 20),
                             decoration: InputDecoration(
@@ -745,6 +752,7 @@ class _InspectionRejectCheckingInspectorState
                             value: e.name.toString(),
                             onTap: () {
                               setState(() {
+                                isFirstRun = false;
                                 selectedCheckpoint = e;
                                 transCP = null;
                                 transferCheckpoints =
@@ -829,6 +837,7 @@ class _InspectionRejectCheckingInspectorState
                             defectFromController.text = "";
                             defectToController.text = "";
                             remarkController.text = "";
+
                           });
                         },
                       ),
@@ -1135,36 +1144,43 @@ class _InspectionRejectCheckingInspectorState
                           child: Container(
                             width: MediaQuery.of(context).size.width * 0.8,
                             height: 50,
-                            color: Colors.orange,
+                            color: isFirstRun ? Colors.grey : Colors.orange,
                             child: Center(
                                 child: TextWidget(
                               text: "SAVE",
                               fontSize: 20,
                             )),
                           ),
-                          onTap: () {
-                            Navigator.pop(context);
+                          onTap: isFirstRun
+                              ? () {}
+                              : () {
+                                  Navigator.pop(context);
 
-                            groupLeaderBloc.add(
-                              PostCheckPointInspector(
-                                InspectorCpBody(
-                                  componentRfidId:
-                                      widget.componentRfidID.toString(),
-                                  checkPointId:
-                                      selectedCheckpoint.id.toString(),
-                                  defectDepthTo: _con.text.toString() == "0"
-                                      ? "0"
-                                      : defectToController.text.toString(),
-                                  defectDepthFrom: _con.text.toString() == "0"
-                                      ? "0"
-                                      : defectFromController.text.toString(),
-                                  defectLength: _con.text.toString(),
-                                  result: status,
-                                  remark: remarkController.text.toString(),
-                                ),
-                              ),
-                            );
-                          },
+                                  groupLeaderBloc.add(
+                                    PostCheckPointInspector(
+                                      InspectorCpBody(
+                                        componentRfidId:
+                                            widget.componentRfidID.toString(),
+                                        checkPointId:
+                                            selectedCheckpoint.id.toString(),
+                                        defectDepthTo:
+                                            _con.text.toString() == "0"
+                                                ? "0"
+                                                : defectToController.text
+                                                    .toString(),
+                                        defectDepthFrom:
+                                            _con.text.toString() == "0"
+                                                ? "0"
+                                                : defectFromController.text
+                                                    .toString(),
+                                        defectLength: _con.text.toString(),
+                                        result: status,
+                                        remark:
+                                            remarkController.text.toString(),
+                                      ),
+                                    ),
+                                  );
+                                },
                         )
                       ],
                     ),
